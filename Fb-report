@@ -1,0 +1,48 @@
+import requests
+
+# Authentication function to get a valid access token
+def login_to_facebook(app_id, app_secret):
+    token_url = f'https://graph.facebook.com/oauth/access_token?client_id={app_id}&client_secret={app_secret}&grant_type=client_credentials'
+    response = requests.get(token_url)
+    token_info = response.json()
+    access_token = token_info.get('access_token')
+    return access_token
+
+# Search for posts or comments containing specific keywords
+def search_posts(access_token, keyword, search_type='post'):
+    search_url = f'https://graph.facebook.com/v9.0/search?q={keyword}&type={search_type}&access_token={access_token}'
+    response = requests.get(search_url)
+    posts = response.json().get('data', [])
+    return posts
+
+# Report a specific post or comment using Facebook's reporting mechanism
+def report_content(access_token, post_id):
+    # Note: The actual reporting process might need more specific permissions and endpoint, substitute with hypothetical call
+    report_url = f'https://graph.facebook.com/{post_id}/report?access_token={access_token}'
+    payload = {'method': 'post'}
+    response = requests.post(report_url, data=payload)
+    return response.status_code
+
+# Main script execution
+if __name__ == '__main__':
+    APP_ID = 'your_app_id'
+    APP_SECRET = 'your_app_secret'
+    KEYWORD = 'reported_keyword'
+
+    # Authenticate and get access token
+    access_token = login_to_facebook(APP_ID, APP_SECRET)
+
+    if access_token:
+        # Search for posts with the keyword
+        posts = search_posts(access_token, KEYWORD)
+        
+        for post in posts:
+            post_id = post['id']
+            # Report each post found with the given keyword
+            response_code = report_content(access_token, post_id)
+            if response_code == 200:
+                print(f'Successfully reported post: {post_id}')
+            else:
+                print(f'Failed to report post: {post_id}')
+    else:
+        print('Authentication failed.')
